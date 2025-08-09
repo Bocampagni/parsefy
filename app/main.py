@@ -2,9 +2,17 @@ from typing import Union
 import uvicorn
 
 from fastapi import FastAPI
+from docling.document_converter import DocumentConverter
+
 
 app = FastAPI()
 
+@app.get("/convert")
+def convert_document():
+    source = "https://arxiv.org/pdf/2408.09869"  # document per local path or URL
+    converter = DocumentConverter()
+    result = converter.convert(source)
+    print(result.document.export_to_markdown())  # output: "## Docling Technical Report[...]"
 
 @app.get("/")
 def read_root():
