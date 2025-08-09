@@ -1,18 +1,28 @@
+import os
 from typing import Union
+
 import uvicorn
-
-from fastapi import FastAPI
 from docling.document_converter import DocumentConverter
-
+from fastapi import BackgroundTasks, FastAPI
 
 app = FastAPI()
 
-@app.get("/convert")
-def convert_document():
-    source = "https://arxiv.org/pdf/2408.09869"  # document per local path or URL
+
+def parse_doc(source: str):
     converter = DocumentConverter()
     result = converter.convert(source)
-    print(result.document.export_to_markdown())  # output: "## Docling Technical Report[...]"
+
+    os.makedirs("output", exist_ok=True)
+    with open("output/output.MD", "w") as f:
+        f.write(result.document.export_to_markdown())
+
+
+@app.get("/convert")
+def convert_document(background_tasks: BackgroundTasks):
+    source = "https://arxiv.org/pdf/2408.09869"  # document per local path or URL
+    background_tasks.add_task(parse_doc, source)
+    return {"message": "Document conversion started in the background"}
+
 
 @app.get("/")
 def read_root():
